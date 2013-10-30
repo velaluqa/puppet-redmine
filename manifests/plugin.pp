@@ -16,7 +16,8 @@ define redmine::plugin::rake {
 define redmine::plugin
 (
   $git_repo = undef,
-  $git_ref = "master",
+  $git_branch = "master",
+  $git_tag = undef,
   $migrate = false,
   $rake = [],
 )
@@ -25,6 +26,12 @@ define redmine::plugin
     $rvm_prefix     = "source /usr/local/rvm/scripts/rvm; rvm use --create ${redmine::rvm_ruby} > /dev/null; "
   } else {
     $rvm_prefix     = ''
+  }
+
+  if($git_tag == undef) {
+    $git_ref = "origin/${git_branch}"
+  } else {
+    $git_ref = $git_tag
   }
 
   $redmine_dir = "${redmine::app_root}/current"
@@ -47,7 +54,7 @@ define redmine::plugin
     path => "/usr/bin:/bin",
     user => $redmine::redmine_user,
     cwd => $plugin_dir,
-    command => "git checkout db/schema.rb; git checkout origin/${git_ref}",
+    command => "git checkout db/schema.rb; git checkout ${git_ref}",
     onlyif => "git fetch; git diff HEAD..origin/${git_ref} | grep -q ^---",
     notify => Service['redmine'],
   }
