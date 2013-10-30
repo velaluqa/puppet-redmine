@@ -41,7 +41,7 @@ class redmine(
   $rvm_ruby           = $redmine::params::rvm_ruby,
 ) inherits redmine::params {
   if $rvm_ruby != '' {
-    $rvm_prefix     = "source /usr/local/rvm/scripts/rvm; rvm use --create ${rvm_ruby}; "
+    $rvm_prefix     = "source /usr/local/rvm/scripts/rvm; rvm use --create ${rvm_ruby} > /dev/null; "
   } else {
     $rvm_prefix     = ''
   }
