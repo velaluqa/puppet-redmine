@@ -53,7 +53,7 @@ class redmine(
 
   case $::osfamily {
     'Debian': {
-      case $deb_adapter {
+      case $db_adapter {
         'mysql': {
           if !defined(Package['libmysql++-dev']) {
             package { 'libmysql++-dev':
