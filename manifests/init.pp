@@ -20,26 +20,26 @@
 #
 #
 class redmine(
-  $app_root           = $redmine::params::app_root,
-  $redmine_sources    = $redmine::params::redmine_sources,
-  $redmine_branch     = $redmine::params::redmine_branch,
-  $redmine_user       = $redmine::params::redmine_user,
-  $db_adapter         = $redmine::params::db_adapter,
-  $db_name            = $redmine::params::db_name,
-  $db_user            = $redmine::params::db_user,
-  $db_password        = $redmine::params::db_password,
-  $db_host            = $redmine::params::db_host,
-  $db_port            = $redmine::params::db_port,
-  $ldap_enabled       = $redmine::params::ldap_enabled,
-  $ldap_host          = $redmine::params::ldap_host,
-  $ldap_base          = $redmine::params::ldap_base,
-  $ldap_uid           = $redmine::params::ldap_uid,
-  $ldap_port          = $redmine::params::ldap_port,
-  $ldap_method        = $redmine::params::ldap_method,
-  $ldap_bind_dn       = $redmine::params::ldap_bind_dn,
-  $ldap_bind_password = $redmine::params::ldap_bind_password,
-  $rvm_ruby           = $redmine::params::rvm_ruby,
-) inherits redmine::params {
+  $app_root             = '/srv/redmine',
+  $redmine_sources      = 'https://github.com/redmine/redmine.git',
+  $redmine_branch       = '2.3-stable',
+  $redmine_user         = 'deployment',
+  $db_adapter           = 'mysql',
+  $db_name              = 'redminedb',
+  $db_user              = 'redminedbu',
+  $db_password          = 'changeme',
+  $db_host              = 'localhost',
+  $db_port              = '3306',
+  $ldap_enabled         = false,
+  $ldap_host            = 'ldap.domain.com',
+  $ldap_base            = 'dc=domain,dc=com',
+  $ldap_uid             = 'uid',
+  $ldap_port            = '636',
+  $ldap_method          = 'ssl',
+  $ldap_bind_dn         = '',
+  $ldap_bind_password   = '',
+  $rvm_ruby             = '',
+) {
   if $rvm_ruby != '' {
     $rvm_prefix     = "source /usr/local/rvm/scripts/rvm; rvm use --create ${rvm_ruby} > /dev/null; "
   } else {
