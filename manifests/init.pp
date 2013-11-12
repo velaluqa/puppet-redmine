@@ -38,6 +38,14 @@ class redmine(
   $ldap_method          = 'ssl',
   $ldap_bind_dn         = '',
   $ldap_bind_password   = '',
+  $mail_delivery_method = 'sendmail',
+  $mail_starttls        = undefined,
+  $mail_address         = undefined,
+  $mail_port            = undefined,
+  $mail_domain          = undefined,
+  $mail_authentication  = undefined,
+  $mail_username        = undefined,
+  $mail_password        = undefined,
   $rvm_ruby             = '',
 ) {
   if $rvm_ruby != '' {
@@ -158,6 +166,18 @@ class redmine(
   file { "${app_root}/current/config/database.yml":
     ensure => link,
     target => "${app_root}/shared/config/database.yml",
+    require => Exec['redmine-checkout'],
+  }
+
+  file { "${app_root}/shared/config/configuration.yml":
+    content => template('redmine/configuration.yml.erb'),
+    owner => $redmine_user,
+    group => $redmine_user,
+  }
+
+  file { "${app_root}/current/config/configuration.yml":
+    ensure => link,
+    target => "${app_root}/shared/config/configuration.yml",
     require => Exec['redmine-checkout'],
   }
 
