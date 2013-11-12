@@ -1,4 +1,4 @@
-name    'puppet-redmine'
+name    'velaluqa-redmine'
 version '0.0.1'
 source  'https://github.com/leoc/puppet-redmine'
 author  'Arthur Leonard Andersen'
