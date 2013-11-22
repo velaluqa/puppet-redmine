@@ -21,7 +21,7 @@
 #
 class redmine(
   $app_root             = '/srv/redmine',
-  $redmine_sources      = 'https://github.com/redmine/redmine.git',
+  $redmine_source       = 'https://github.com/redmine/redmine.git',
   $redmine_revision     = 'origin/2.3-stable',
   $redmine_user         = 'deployment',
   $db_adapter           = 'mysql',
@@ -157,7 +157,7 @@ class redmine(
   vcsrepo { "${app_root}/current":
     ensure   => present,
     provider => 'git',
-    source   => 'https://github.com/redmine/redmine.git',
+    source   => $redmine_source,
     user     => $redmine_user,
     revision => $redmine_revision,
     require  => File[$app_root],
