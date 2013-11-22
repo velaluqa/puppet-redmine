@@ -19,7 +19,9 @@ TODO: add parameter list
 
 ## Dependencys
 
-TODO: add dependencies
+```
+dependency "puppetlabs/vcsrepo", ">=0.2.0"
+```
 
 ## Contribute
 
