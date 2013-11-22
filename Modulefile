@@ -1,6 +1,6 @@
 name    'velaluqa-redmine'
-version '0.0.2'
-source  'https://github.com/leoc/puppet-redmine'
+version '1.0.0'
+source  'https://github.com/velaluqa/puppet-redmine'
 author  'Arthur Leonard Andersen'
 license 'GPLv3'
 summary 'Puppet Redmine Module'
