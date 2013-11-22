@@ -2,15 +2,21 @@
 
 ## Usage
 
+
+
 ```
-  class {
-    'redmine:
-      redmine_domain => 'redmine.foobar.fr',
-      redmine_dbtype => 'mysql',
-      redmine_dbname => $redmine_dbname,
-      redmine_dbuser => $redmine_dbuser,
-      redmine_dbpwd  => $redmine_dbpwd,
-      ldap_enabled   => false,
+  class { 'redmine':
+    app_root             = '/srv/redmine',
+    redmine_source       = 'https://github.com/redmine/redmine.git',
+    redmine_revision     = 'origin/2.3-stable',
+    redmine_user         = 'deployment',
+    db_adapter           = 'pgsql',
+    db_name              = 'redminedb',
+    db_user              = 'redminedbu',
+    db_password          = 'changeme',
+    db_host              = 'localhost',
+    db_port              = '3306',
+    rvm_ruby             = '1.9.3@redmine',
   }
 ```
 ### Other class parameters
