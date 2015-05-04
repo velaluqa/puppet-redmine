@@ -54,7 +54,7 @@ install yourself).
 * mail\_password: Mail server password. (default: undefined)
 * rvm\_ruby: Which ruby to use, per default RVM is not used. (default: '')
 
-## Dependencys
+## Dependencies
 
 [puppetlabs/vcsrepo](https://github.com/puppetlabs/puppetlabs-vcsrepo) >= 0.2.0
 
