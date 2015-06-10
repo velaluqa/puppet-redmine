@@ -68,20 +68,21 @@ class redmine(
             }
           }
         }
-        'pgsql': {
-          if !defined(Package['libpq-dev']) {
-            package { 'libpq-dev':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
-            }
-          }
-          if !defined(Package['postgresql-client']) {
-            package { 'postgresql-client':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
-            }
-          }
-        }
+# We provide postgresql configuration by another puppet module and this conflicted
+#        'pgsql': {
+#          if !defined(Package['libpq-dev']) {
+#            package { 'libpq-dev':
+#              ensure => installed,
+#              before => Exec['redmine-bundle'],
+#            }
+#          }
+#          if !defined(Package['postgresql-client']) {
+#            package { 'postgresql-client':
+#              ensure => installed,
+#              before => Exec['redmine-bundle'],
+#            }
+#          }
+#        }
       }
 
       if !defined(Package['libmagickcore-dev']) {
