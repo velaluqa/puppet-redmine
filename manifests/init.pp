@@ -23,7 +23,8 @@ class redmine(
   $app_root             = '/srv/redmine',
   $redmine_source       = 'https://github.com/redmine/redmine.git',
   $redmine_revision     = 'origin/2.3-stable',
-  $redmine_user         = 'deployment',
+  $redmine_user         = 'redmine',
+  $maintain_db          = false,
   $db_adapter           = 'mysql',
   $db_name              = 'redminedb',
   $db_user              = 'redminedbu',
@@ -51,38 +52,41 @@ class redmine(
     pgsql => 'development test mysql'
   }
 
+
   case $::osfamily {
     'Debian': {
-      case $db_adapter {
-        'mysql': {
-          if !defined(Package['libmysql++-dev']) {
-            package { 'libmysql++-dev':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
+      if $maintain_db {
+        case $db_adapter {
+          'mysql': {
+            if !defined(Package['libmysql++-dev']) {
+              package { 'libmysql++-dev':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
+            }
+            if !defined(Package['libmysqlclient-dev']) {
+              package { 'libmysqlclient-dev':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
             }
           }
-          if !defined(Package['libmysqlclient-dev']) {
-            package { 'libmysqlclient-dev':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
+
+          'pgsql': {
+            if !defined(Package['libpq-dev']) {
+              package { 'libpq-dev':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
+            }
+            if !defined(Package['postgresql-client']) {
+              package { 'postgresql-client':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
             }
           }
         }
-# We provide postgresql configuration by another puppet module and this conflicted
-#        'pgsql': {
-#          if !defined(Package['libpq-dev']) {
-#            package { 'libpq-dev':
-#              ensure => installed,
-#              before => Exec['redmine-bundle'],
-#            }
-#          }
-#          if !defined(Package['postgresql-client']) {
-#            package { 'postgresql-client':
-#              ensure => installed,
-#              before => Exec['redmine-bundle'],
-#            }
-#          }
-#        }
       }
 
       if !defined(Package['bundler']) {
