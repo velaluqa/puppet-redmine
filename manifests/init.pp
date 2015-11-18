@@ -23,7 +23,8 @@ class redmine(
   $app_root             = '/srv/redmine',
   $redmine_source       = 'https://github.com/redmine/redmine.git',
   $redmine_revision     = 'origin/2.3-stable',
-  $redmine_user         = 'deployment',
+  $redmine_user         = 'redmine',
+  $maintain_db          = false,
   $db_adapter           = 'mysql',
   $db_name              = 'redminedb',
   $db_user              = 'redminedbu',
@@ -31,13 +32,13 @@ class redmine(
   $db_host              = 'localhost',
   $db_port              = '3306',
   $mail_delivery_method = 'sendmail',
-  $mail_starttls        = undefined,
-  $mail_address         = undefined,
-  $mail_port            = undefined,
-  $mail_domain          = undefined,
-  $mail_authentication  = undefined,
-  $mail_username        = undefined,
-  $mail_password        = undefined,
+  $mail_starttls        = undef,
+  $mail_address         = undef,
+  $mail_port            = undef,
+  $mail_domain          = undef,
+  $mail_authentication  = undef,
+  $mail_username        = undef,
+  $mail_password        = undef,
   $rvm_ruby             = '',
 ) {
   if $rvm_ruby != '' {
@@ -51,52 +52,75 @@ class redmine(
     pgsql => 'development test mysql'
   }
 
+
   case $::osfamily {
     'Debian': {
-      case $db_adapter {
-        'mysql': {
-          if !defined(Package['libmysql++-dev']) {
-            package { 'libmysql++-dev':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
+      if $maintain_db {
+        case $db_adapter {
+          'mysql': {
+            if !defined(Package['libmysql++-dev']) {
+              package { 'libmysql++-dev':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
+            }
+            if !defined(Package['libmysqlclient-dev']) {
+              package { 'libmysqlclient-dev':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
             }
           }
-          if !defined(Package['libmysqlclient-dev']) {
-            package { 'libmysqlclient-dev':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
+
+          'pgsql': {
+            if !defined(Package['libpq-dev']) {
+              package { 'libpq-dev':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
             }
-          }
-        }
-        'pgsql': {
-          if !defined(Package['libpq-dev']) {
-            package { 'libpq-dev':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
-            }
-          }
-          if !defined(Package['postgresql-client']) {
-            package { 'postgresql-client':
-              ensure => installed,
-              before => Exec['redmine-bundle'],
+            if !defined(Package['postgresql-client']) {
+              package { 'postgresql-client':
+                ensure => installed,
+                before => Exec['redmine-bundle'],
+              }
             }
           }
         }
       }
 
+      if !defined(Package['bundler']) {
+        package { 'bundler':
+          ensure => latest,
+          provider => 'gem',
+          before => Exec['redmine-bundle'],
+        }
+      }
+      if !defined(Package['imagemagick']) {
+        package { 'imagemagick':
+          ensure => present,
+          before => Exec['redmine-bundle'],
+        }
+      }
+      if !defined(Package['ruby-all-dev']) {
+        package { 'ruby-all-dev':
+          ensure => present,
+          before => Exec['redmine-bundle'],
+        }
+      }
       if !defined(Package['libmagickcore-dev']) {
         package { 'libmagickcore-dev':
-          ensure => latest,
+          ensure => present,
           before => Exec['redmine-bundle'],
         }
       }
       if !defined(Package['libmagickwand-dev']) {
         package { 'libmagickwand-dev':
-          ensure => latest,
+          ensure => present,
           before => Exec['redmine-bundle'],
         }
       }
-    } # Debian pre-requists
+    } # Redhat pre-requists
     'Redhat': {
       $db_packages = $db_adapter ? {
         mysql => ['mysql-devel'],
@@ -129,12 +153,15 @@ class redmine(
           before   => Exec['redmine-bundle'],
         }
       }
-    } # Redhat pre-requists
+    } # Default OS pre-requists
     default: {
       err "${::osfamily} not supported yet"
     }
   }
 
+  class { 'puma':
+    require => Package['ruby-all-dev'],
+  } ->
   puma::app { 'redmine':
     app_root    => $app_root,
     app_user    => $redmine_user,
@@ -143,6 +170,7 @@ class redmine(
     db_password => $db_password,
     db_host     => $db_host,
     db_port     => $db_port,
+    db_name     => $db_name,
     rvm_ruby    => $rvm_ruby,
   }
 
@@ -203,10 +231,10 @@ class redmine(
   }
 
   exec { 'redmine-bundle':
-    path    => '/bin:/usr/bin',
-    command => "bash -c '${rvm_prefix}cd ${app_root}/current; bundle --without ${without_gems}'",
+    path    => '/usr/local/bin:/bin:/usr/bin',
+    command => "bash -c '${rvm_prefix}cd ${app_root}/current; bundle install --path ~/.gem --without ${without_gems}'",
     unless  => "bash -c '${rvm_prefix}cd ${app_root}/current; bundle check'",
-    require => Vcsrepo["${app_root}/current"],
+    require => [ Vcsrepo["${app_root}/current"], File["${app_root}/current/config/database.yml"] ],
     notify  => Service['redmine'],
     user    => $redmine_user,
     group   => $redmine_user,
@@ -214,10 +242,10 @@ class redmine(
   }
 
   exec { "redmine-migrate":
-    path    => "/bin:/usr/bin",
-    unless  => "bash -c '${rvm_prefix}cd ${app_root}/current; RAILS_ENV=production bundle exec rake db:abort_if_pending_migrations'",
+    path    => "/usr/local/bin:/bin:/usr/bin",
     command => "bash -c '${rvm_prefix}cd ${app_root}/current; RAILS_ENV=production bundle exec rake db:migrate'",
-    require => [ Exec['redmine-bundle'], File["${app_root}/current/config/database.yml"] ],
+    unless  => "bash -c '${rvm_prefix}cd ${app_root}/current; RAILS_ENV=production bundle exec rake db:abort_if_pending_migrations'",
+    require => Exec['redmine-bundle'],
     notify  => Service["redmine"],
     user    => $redmine_user,
     group   => $redmine_user,
@@ -225,10 +253,11 @@ class redmine(
   }
 
   exec { "redmine-configure":
-    require => Exec['redmine-migrate'],
-    path    => "/bin:/usr/bin",
+    path    => "/usr/local/bin:/bin:/usr/bin",
     command => "bash -c '${rvm_prefix}cd ${app_root}/current; RAILS_ENV=production bundle exec rake generate_secret_token; REDMINE_LANG=en RAILS_ENV=production bundle exec rake redmine:load_default_data'; touch ${app_root}/.configured",
     unless  => "[ -f ${app_root}/.configured ]",
+    require => Exec['redmine-migrate'],
+    notify  => Service["redmine"],
     user    => $redmine_user,
     group   => $redmine_user,
     timeout => 600,

@@ -1,6 +1,12 @@
 production:
   email_delivery:
     delivery_method: :<%= @mail_delivery_method %>
+<% if @mail_delivery_method = 'sendmail' -%>
+    sendmail_settings:
+<% if @operatingsystem = 'Debian' -%>
+      arguments: "-i"
+<% end %>
+<% else %>
     smtp_settings:
 <% unless @mail_starttls.nil? -%>
       enable_starttls_auto: <%= @mail_starttls ? 'true' : 'false' %>
@@ -22,4 +28,5 @@ production:
 <% end -%>
 <% if @mail_password -%>
       password: <%= @mail_password %>
+<% end -%>
 <% end -%>

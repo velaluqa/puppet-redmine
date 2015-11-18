@@ -16,11 +16,12 @@ define redmine::plugin::rake {
 
 define redmine::plugin
 (
-  $provider = 'git',
-  $source   = undef,
-  $revision = "origin/master",
-  $migrate  = false,
-  $rake     = [],
+  $provider        = 'git',
+  $source          = undef,
+  $revision        = 'origin/master',
+  $install_command = undef,
+  $migrate         = false,
+  $rake            = [],
 )
 {
   $rvm_ruby = $redmine::rvm_ruby
@@ -49,9 +50,10 @@ define redmine::plugin
   ->
 
   exec { "bundle-${name}-plugin":
-    path    => '/bin:/usr/bin',
-    command => "bash -c '${rvm_prefix}cd ${app_root}/current; bundle --without ${redmine::without_gems}'",
-    unless  => "bash -c '${rvm_prefix}cd ${app_root}/current; bundle check'",
+    path    => '/usr/local/bin:/bin:/usr/bin',
+    command => install_command ? { undef   => '/bin/true',
+                                   default => "bash -c '${rvm_prefix}cd ${app_root}/current; ${install_command}'",
+                                 },
     notify  => Service['redmine'],
     user    => $redmine_user,
     group   => $redmine_user,
@@ -61,7 +63,7 @@ define redmine::plugin
   ->
 
   exec { "migrate-${name}-plugin":
-    path        => "/usr/bin:/bin",
+    path        => '/usr/local/bin:/usr/bin:/bin',
     user        => $redmine_user,
     command     => $migrate ? {
       true  => "bash -c '${rvm_prefix}cd ${redmine_dir}; RAILS_ENV=production bundle exec rake db:migrate'",
