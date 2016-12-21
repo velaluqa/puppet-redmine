@@ -1,3 +1,8 @@
+# UNMAINTAINED
+
+Since we stopped using puppet for our infrastructure, we are not going to 
+maintain this solution anymore.
+
 # Puppet-redmine
 
 Puppet redmine installs redmine with puma::app (this one you have to
